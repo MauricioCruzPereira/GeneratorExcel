@@ -1,3 +1,5 @@
+
+
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
@@ -16,7 +18,6 @@ $conn = new Database('tabela');
 $fields = 'campos desejado';
 //Recebe o resultado da query
 $result = $conn->select("DIGITE A WHERE",'','',$fields);
-//echo '<pre>';var_dump($);echo '</pre>';
 
 //Passa o resultado da query e os campos pegos
 $excel = new Excel($result,$fields);
