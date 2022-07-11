@@ -5,17 +5,27 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 use \App\Entity\Excel;
+use \App\Db\Database;
 
-//instancia o Excel;
-$excel = new Excel();
+//Inicia conexão com o banco de dados
+Database::config('host','banco','senha','user');
 
-//use isso para alterar a cor caso queira
-//$excel->cor = 'red';
+//Escolha a tabela que será analisada
+$conn = new Database('tabela');
+//os campos a serem pegos
+$fields = 'campos desejado';
+//Recebe o resultado da query
+$result = $conn->select("DIGITE A WHERE",'','',$fields);
+//echo '<pre>';var_dump($);echo '</pre>';
 
-//muda o nome do arquivo que será gerado
-$excel->nameArquivo = 'pedidosCompletos';
-// passa os parametros que deseja no where e os campos que quer pegar, caso para melhor entendimento consulta o arquivo Database.php
-$html = $excel->SelectDicesAndTransformExcel("id_revendedor != 0 AND data_emissao >= '2022-05-01 00:00:00'AND data_emissao < '2022-07-1 00:00:00'",'','','id,id_revendedor');
+//Passa o resultado da query e os campos pegos
+$excel = new Excel($result,$fields);
+//muda o nome do arquivo que será baixado
+$excel->nameArquivo = 'teste';
+//Muda a cor da primeira linha do excel
+$excel->cor = 'red';
+//Gera o excel
+$excelGerado = $excel->generateExcel();
 
-//imprime o excel
-echo $html;
+//Baixa o excel
+echo $excelGerado;

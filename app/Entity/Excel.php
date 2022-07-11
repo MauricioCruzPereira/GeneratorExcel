@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Db\Database;
-
 /**
  * author Mau do back
  */
@@ -15,10 +13,14 @@ class Excel{
     //nome padrão
     public $nameArquivo = 'arquivoExcelGerado';
 
+    private $dados;
+    private $fields;
+
     //responsável por iniciar a conexão com o banco
     //mudar o banco ou outro dado caso precise
-    public function __construct(){
-        Database::config('host','banco','senha','user');
+    public function __construct($dados, $fields){
+       $this->dados = $dados;
+       $this->fields = $fields;
     }
 
     /**
@@ -26,11 +28,12 @@ class Excel{
      * @param string $html
      * @return Xlsx
      */ 
-    private function geraExcelDownload($html){
+    private function transformFormatExcelAndDownload($html){
         //baixa o arquivo já no formato de excel na parta downloads
         header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         header("Content-Disposition: attachment;filename=\"{$this->nameArquivo}.xlsx\"");
         header("Cache-Control: max-age=0");
+        //retorna o Excel
         return $html;
     }
 
@@ -40,7 +43,7 @@ class Excel{
      * @param string $fields
      * @return .xls
      */
-    private function Excel($dados,$fields){
+    private function MontaExcel(){
         // Criamos uma tabela HTML com o formato da planilha
         $html = '';
 
@@ -49,8 +52,9 @@ class Excel{
         //fazer um foreach com os dados recebidos do banco
 
         //transformar os campos desejados em formato array
-        $fields = explode(',',$fields);
+        $fields = explode(',',$this->fields);
 
+        //cria o layout em formato de table
         $html .= "<tr>";
         foreach($fields as $field){
             $html .= "<td style='background-color: {$this->cor}; font-size:20px; color:white;text-align:center;'><b>".$field."</b></td>";
@@ -58,7 +62,7 @@ class Excel{
         $html .= '</tr>';
 
         $contador = 1;
-        while ($dado = $dados->fetchObject()){
+        while ($dado = $this->dados->fetchObject()){
             $html .= "<tr style='font-size:15px'>";
             foreach($fields as $field){
                 if($contador %2 == 0){
@@ -76,10 +80,11 @@ class Excel{
 
         $html .= '</table>';
 
-        echo '<pre>';var_dump($html);echo '</pre>';exit;
+        //transforma de table para formato excel
+        $excel = $this->transformFormatExcelAndDownload($html);
 
-        $html = $this->geraExcelDownload($html);
-        return $html;
+        //retorna a tabela processada já em formato excel
+        return $excel;
     }
 
     /**
@@ -90,11 +95,11 @@ class Excel{
      * @param string $fields
      * @return Excel
      */
-    public function SelectDicesAndTransformExcel($where = null,$order = null,$limit=null,$fields){
+    public function generateExcel(){
         //gerando a query para selecionar os dados
         //substituir o '' dentro do database para a tabela que deseja
-        $dados = (new Database('pedido'))->select($where, $order, $limit,$fields);
-        $retorno = $this->Excel($dados,$fields);
+        $retorno = $this->MontaExcel();
+        //Retorna os dados processados em formato de Excel
         return $retorno;
     }
 }
